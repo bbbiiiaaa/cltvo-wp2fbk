@@ -11,6 +11,7 @@ Author URI: http://elcultivo.mx
 
 add_action( 'admin_menu', 'wp2Fbk_registrar_pagina' );
 add_action( 'admin_enqueue_scripts', 'wp2Fbk_registrar_js' );
+add_action( 'save_post', 'cltvo_fbk_save_post' );
 
 //Imprime la página para configurar los comentarios
 function wp2Fbk_registrar_pagina(){
@@ -40,6 +41,65 @@ if (!function_exists('cltvo_plugin_path')) {
 		$path = dirname(__FILE__) . '/' . $file;
 		return $path;
 	}
+}
+
+function cltvo_fbk_save_post($id){
+	// Permisos
+	if( !current_user_can('edit_post', $id) ) return $id;
+
+	// Vs Autosave
+	if( defined('DOING_AUTOSAVE') AND DOING_AUTOSAVE ) return $id;
+	if( wp_is_post_revision($id) OR wp_is_post_autosave($id) ) return $id;
+
+	//FBK!!!
+	include_once 'fbk-api/facebook.php';
+
+	$post = get_post($id);
+	$pagId = cltvo_fbk_option('pagId');
+
+
+	$facebook = new Facebook(array(
+		'appId' => cltvo_fbk_option('appId'),
+		'secret' => cltvo_fbk_option('secret'),
+		'cookie' => true
+	));
+
+	$facebook->setExtendedAccessToken();
+	$access_token = $facebook->getAccessToken();
+
+	$accounts = $facebook->api(
+	   '/me/accounts',
+	   'GET',
+	   array(
+	      'access_token' => $access_token
+	   )
+	);
+	$accounts = $accounts['data'];
+	foreach($accounts as $account){
+		if( $account['id'] == $pagId ){
+			$parameters = array(
+				'access_token' => $account['access_token'],
+				'message' => $post->post_title
+			);
+
+			$newpost = $facebook->api(
+				'/me/feed',
+				'POST',
+				$parameters
+			);
+
+
+		}
+	}
+
+}
+
+function cltvo_fbk_option( $option ) {
+	$options = get_option( 'cltvo_fbk_options' );
+	if ( isset( $options[$option] ) )
+		return $options[$option];
+	else
+		return false;
 }
 
 ?>
