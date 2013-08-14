@@ -8,6 +8,7 @@ Author: El Cultivo
 Author URI: http://elcultivo.mx
 */
 
+add_theme_support( 'post-thumbnails' );
 
 add_action( 'admin_menu', 'wp2Fbk_registrar_pagina' );
 add_action( 'admin_enqueue_scripts', 'wp2Fbk_registrar_js' );
@@ -80,18 +81,18 @@ function cltvo_fbk_save_post($id, $post){
 	$accounts = $accounts['data'];
 	foreach($accounts as $account){
 		if( $account['id'] == $pagId ){
-			$parameters = array(
+			$facebook->setFileUploadSupport(true);
+			
+			$args = array(
 				'access_token' => $account['access_token'],
-				'message' => $post->post_title
+				'message' => $post->post_content . "\n" . get_permalink( $id ),
+				'image' => '@' . cltvo_img_root( wp_get_attachment_url(get_post_thumbnail_id( $id )) )
 			);
-
-			$newpost = $facebook->api(
-				'/me/feed',
+			$new_fbk_post = $facebook->api(
+				'/me/photos',
 				'POST',
-				$parameters
+				$args
 			);
-
-
 		}
 	}
 
@@ -105,4 +106,10 @@ function cltvo_fbk_option( $option ) {
 		return false;
 }
 
+function cltvo_img_root( $img_url ){
+	$path = get_theme_root();
+	$path = str_replace('wp-content/themes', '', $path);
+	$path = str_replace(home_url('/'), $path, $img_url);
+	return $path;
+}
 ?>
