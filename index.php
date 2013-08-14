@@ -11,7 +11,7 @@ Author URI: http://elcultivo.mx
 
 add_action( 'admin_menu', 'wp2Fbk_registrar_pagina' );
 add_action( 'admin_enqueue_scripts', 'wp2Fbk_registrar_js' );
-add_action( 'save_post', 'cltvo_fbk_save_post' );
+add_action( 'save_post', 'cltvo_fbk_save_post', 10, 2 );
 
 //Imprime la página para configurar los comentarios
 function wp2Fbk_registrar_pagina(){
@@ -43,18 +43,21 @@ if (!function_exists('cltvo_plugin_path')) {
 	}
 }
 
-function cltvo_fbk_save_post($id){
+function cltvo_fbk_save_post($id, $post){
+
 	// Permisos
-	if( !current_user_can('edit_post', $id) ) return $id;
+	if( !current_user_can('edit_post', $id) ) return;
 
 	// Vs Autosave
-	if( defined('DOING_AUTOSAVE') AND DOING_AUTOSAVE ) return $id;
-	if( wp_is_post_revision($id) OR wp_is_post_autosave($id) ) return $id;
+	if( defined('DOING_AUTOSAVE') AND DOING_AUTOSAVE ) return;
+	if( defined( 'DOING_AJAX' ) && DOING_AJAX ) return;
+	if( wp_is_post_revision($id) OR wp_is_post_autosave($id) ) return;
+
+	if( $post->post_status != 'publish') return;
 
 	//FBK!!!
 	include_once 'fbk-api/facebook.php';
 
-	$post = get_post($id);
 	$pagId = cltvo_fbk_option('pagId');
 
 
