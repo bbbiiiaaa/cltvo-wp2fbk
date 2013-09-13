@@ -26,5 +26,5 @@ if( isset($_POST['cltvo-wp2fbk_appId']) && isset($_POST['cltvo-wp2fbk_appSecret'
 	<li>Mover "page-cltvo-wp2fbk.php" a la carpeta del theme activo</li>
 	<li>Refrescar los permalinks</li>
 	<li>ir a <a href="<?php bloginfo('url'); ?>/cltvo-wp2fbk" target="_blank">cltvo-wp2fbk </a>para dar permisos a Fbk de publicar</a></li>
-	<li>¡listo! Para publicar posts en Fbk sólo se tiene que marcar el checkbox 
+	<li>¡listo! Para publicar posts en Fbk sólo se tiene que marcar el checkbox.<li>
 </ol>
