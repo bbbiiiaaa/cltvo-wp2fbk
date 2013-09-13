@@ -13,10 +13,11 @@ add_theme_support( 'post-thumbnails' );
 add_action( 'admin_menu', 'wp2Fbk_registrar_pagina' );
 add_action( 'admin_enqueue_scripts', 'wp2Fbk_registrar_js' );
 add_action( 'save_post', 'cltvo_fbk_save_post', 10, 2 );
+add_action( 'add_meta_boxes', 'wp2Fbk_metaboxes' );
 
 //Imprime la página para configurar los comentarios
 function wp2Fbk_registrar_pagina(){
-    add_menu_page( 'wp2Fbk', 'wp2Fbk', 'manage_options', 'cltvo-wp2fbk/wp2fbk-page.php');
+    add_menu_page( 'wp2Fbk Instrucciones', 'wp2Fbk Instrucciones', 'manage_options', 'cltvo-wp2fbk/wp2fbk-page.php');
 }
 
 //Registra el functions.js y le pasa algunas variablesxml2post
@@ -34,9 +35,21 @@ function wp2Fbk_registrar_js(){
 	wp_enqueue_script ('wp2Fbk_functions_js');
 }
 
+//METABOX
+function wp2Fbk_metaboxes(){
+	add_meta_box(
+		'post2fbk_mb',
+		'Facebook',
+		'post2fbk_mb',
+		'post',
+		'side'
+	);
+}
+function post2fbk_mb($obj){
+	echo '<p><input type="checkbox" name="post2fbk_in" > Publicar en Facebook</p>';
+}
+
 //Regresa el path absoluto de $file
-
-
 if (!function_exists('cltvo_plugin_path')) { 
 	function cltvo_plugin_path($file){
 		$path = dirname(__FILE__) . '/' . $file;
@@ -45,6 +58,9 @@ if (!function_exists('cltvo_plugin_path')) {
 }
 
 function cltvo_fbk_save_post($id, $post){
+
+	// Checkbox
+	if( !isset($_POST['post2fbk_in']) ) return;
 
 	// Permisos
 	if( !current_user_can('edit_post', $id) ) return;
@@ -60,7 +76,6 @@ function cltvo_fbk_save_post($id, $post){
 	include_once 'fbk-api/facebook.php';
 
 	$pagId = cltvo_fbk_option('pagId');
-
 
 	$facebook = new Facebook(array(
 		'appId' => cltvo_fbk_option('appId'),
@@ -86,7 +101,7 @@ function cltvo_fbk_save_post($id, $post){
 			$args = array(
 				'access_token' => $account['access_token'],
 				'message' => $post->post_content . "\n" . get_permalink( $id ),
-				'image' => '@' . cltvo_img_root( wp_get_attachment_url(get_post_thumbnail_id( $id )) )
+				'image' => '@' . cltvo_wpURL_2_path( wp_get_attachment_url(get_post_thumbnail_id( $id )) )
 			);
 			$new_fbk_post = $facebook->api(
 				'/me/photos',
@@ -104,12 +119,5 @@ function cltvo_fbk_option( $option ) {
 		return $options[$option];
 	else
 		return false;
-}
-
-function cltvo_img_root( $img_url ){
-	$path = get_theme_root();
-	$path = str_replace('wp-content/themes', '', $path);
-	$path = str_replace(home_url('/'), $path, $img_url);
-	return $path;
 }
 ?>

@@ -4,21 +4,16 @@
 //para correr la autenticación de FBK
 
 $cltvo_fbk_options = array(
-	'appId' => '190429214467897',
-	'secret'=> '8fa21ba73855a1d56d2b3c7cbbbc9e9c'
+	'appId' => cltvo_fbk_option('appId'),
+	'secret'=> cltvo_fbk_option('secret')
 );
 
 if( isset($_POST['pagina_por_administrar']) ){
 	//Si ya le dió permisos a la App
 	//y escogió la página que va a admin
 
-	//$pagina_arr = explode(', ', $_POST['pagina_por_administrar']);
-	$cltvo_fbk_options['pagId'] = $pagina_arr[0];
-	//$cltvo_fbk_options['pagToken'] = $pagina_arr[1];
+	$cltvo_fbk_options['pagId'] = $_POST['pagina_por_administrar'];
 
-	// echo "<pre>";
-	// print_r($cltvo_fbk_options);
-	// echo "</pre>";
 	if( update_option( 'cltvo_fbk_options', $cltvo_fbk_options ) ){
 		$redirect_admin_url = admin_url();
 		header("Location: {$redirect_admin_url}");
@@ -29,7 +24,8 @@ if( isset($_POST['pagina_por_administrar']) ){
 	//Si no ha escogido la página que quiere administrar
 
 	//include the Facebook PHP SDK
-	include_once 'fbk-api/facebook.php';
+	$fbk_php_file = home_url('/wp-content/plugins/cltvo-wp2fbk/fbk-api/facebook.php');
+	include_once cltvo_wpURL_2_path($fbk_php_file);
 	 
 	//instantiate the Facebook library with the APP ID and APP SECRET
 	$facebook = new Facebook(array(
@@ -105,8 +101,6 @@ if( isset($_POST['pagina_por_administrar']) ){
 		foreach($accounts as $account){
 			echo '<option value="';
 			echo $account['id'];
-			// echo ', ';
-			// echo $account['access_token'];
 			echo '">';
 			echo $account['name'];
 			echo '</option>';
