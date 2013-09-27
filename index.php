@@ -49,12 +49,16 @@ function wp2Fbk_metaboxes(){
 	);
 }
 function post2fbk_mb($obj){
-	if( !cltvo_fbk_option('token') ){
-		echo 'Para publicar en Facebook, primero tienes que <a href="';
-		echo admin_url('/admin.php?page=cltvo-wp2fbk/wp2fbk-page.php&reauth=true');
-		echo '">autoriazar la aplicación.</a>';
-	}else{
+	$appId = get_option('cltvo_fbk_appId');
+	$secret = get_option('cltvo_fbk_secret');
+	$token = get_option('cltvo_fbk_pageToken');
+
+	if( $appId && $secret && $token ){
 		echo '<p><input type="checkbox" name="post2fbk_in" > Publicar en Facebook</p>';
+	}else{
+		echo 'Para publicar en Facebook, primero tienes que <a href="';
+		echo admin_url('/admin.php?page=cltvo-wp2fbk/wp2fbk-page.php');
+		echo '">autoriazar la aplicación.</a>';
 	}
 }
 
@@ -122,36 +126,27 @@ function cltvo_fbk_save_post($id, $post){
 
 	if( $post->post_status != 'publish') return;
 
-	//FBK!!!
-	include_once 'fbk-api/facebook.php';
+	$appId = get_option('cltvo_fbk_appId');
+	$secret = get_option('cltvo_fbk_secret');
 
-	$cltvo_fbk_options = get_option('cltvo_fbk_options');
-
-	$facebook = new Facebook(array(
-		'appId' => $cltvo_fbk_options['appId'],
-		'secret' => $cltvo_fbk_options['secret']
-	));
-
-	$facebook->setFileUploadSupport(true);
 	$img_ids = cltvo_todosIdsImgsDelPost($id);
-	
-	foreach ($img_ids as $img_id) {
-		$args = array(
-			'access_token' => $cltvo_fbk_options['token'],
-			'message' => $post->post_content,
-			'image' => '@' . cltvo_wpURL_2_path( wp_get_attachment_url($img_id) )
-		);
-		$new_fbk_post = $facebook->api(
-			'/me/photos',
-			'POST',
-			$args
-		);
 
-		if($new_fbk_post){
-			update_post_meta($img_id, 'fbk_post_id', $new_fbk_post['id']);
+	if( is_array($img_ids) ){
+		$cltvo_fbk = new CLTVO_fbk($appId, $secret);
+
+		foreach ($img_ids as $img_id) {
+			$args = array(
+				'message' => $post->post_content . ' http://www.hildacalderon.com/category/prendas/#prendas',
+				'image' => '@' . cltvo_wpURL_2_path( wp_get_attachment_url($img_id) )
+			);
+
+			$new_fbk_post = $cltvo_fbk->post_ph_2fbk( $args );
+
+			if($new_fbk_post){
+				update_post_meta($img_id, 'fbk_post_id', $new_fbk_post['id']);
+			}
 		}
 	}
-
 }
 
 if(!function_exists('cltvo_fbk_option')){

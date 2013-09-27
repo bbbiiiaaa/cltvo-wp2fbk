@@ -213,5 +213,26 @@ class CLTVO_fbk{
 
 		return $likes_count;
 	}
+
+	/**
+     * @param args - Facebook post arguments
+     * @return string - New post ID
+     */
+	public function post_ph_2fbk( $args ){
+		$this->facebook->setFileUploadSupport(true);
+
+		if( !isset($this->pageToken) )
+			$this->set_pageToken( get_option('cltvo_fbk_pageToken') );
+
+		$args['access_token'] = $this->pageToken;
+
+		$new_fbk_post = $this->facebook->api(
+			'/me/photos',
+			'POST',
+			$args
+		);
+
+		return $new_fbk_post;
+	}
 }
 ?>
