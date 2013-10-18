@@ -185,15 +185,15 @@ class CLTVO_fbk{
 	}
 
 	/**
-     * @param string/int $post_id - Facebook post ID
+     * @param string/int $fid - Facebook post ID
      * @return array - Facebook likes array
      */
-	public function get_likes($post_id){
+	public function get_likes($fid){
 		if( !isset($this->pageToken) )
 			$this->set_pageToken( get_option('cltvo_fbk_pageToken') );
 
 		$likes = $this->facebook->api(
-			'/' . $post_id . '/likes',
+			'/' . $fid . '/likes',
 			'GET',
 			array('access_token'=>$this->pageToken)
 		);
@@ -201,14 +201,14 @@ class CLTVO_fbk{
 	}
 
 	/**
-     * @param string/int $post_id - Facebook post ID
+     * @param string/int $fid - Facebook post ID
      * @return int - Number of likes
      */
-	public function count_likes($id){
+	public function count_likes($fid){
 		if( !isset($this->pageToken) )
 			$this->set_pageToken( get_option('cltvo_fbk_pageToken') );
 
-		$likes_arr = $this->get_likes($id);
+		$likes_arr = $this->get_likes($fid);
 		$likes_count = count($likes_arr['data']);
 
 		return $likes_count;
@@ -233,6 +233,44 @@ class CLTVO_fbk{
 		);
 
 		return $new_fbk_post;
+	}
+
+	/**
+     * @param string/int $fid - Facebook post ID
+     * @return array - Facebook comments array
+     */
+	public function get_comments( $fid ){
+		if( !isset($this->pageToken) )
+			$this->set_pageToken( get_option('cltvo_fbk_pageToken') );
+
+		$comments = $this->facebook->api(
+			'/' . $fid . '/comments/',
+			'GET',
+			array('access_token'=>$this->pageToken)
+		);
+		$comments = $comments['data'];
+
+		foreach($comments as $key => $comment){
+			$subcomments = $this->facebook->api(
+				'/' . $comment['id'] . '/comments/',
+				'GET',
+				array('access_token'=>$this->pageToken)
+			);			
+			if($subcomments['data'] && $subcomments['data']!= ''){
+				$comments[$key]['subcomments'] = $subcomments['data'];
+			}
+
+		}
+		return $comments;
+	}
+
+	/**
+	 * Prints the URL to place inside a src attribute of an img tag
+	 *
+     * @param string/int $u_id - User ID
+     */
+	public function prof_pic( $u_id ){
+		echo 'http://graph.facebook.com/'.$u_id.'/picture';
 	}
 }
 ?>

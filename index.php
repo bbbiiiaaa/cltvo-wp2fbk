@@ -32,6 +32,24 @@ add_action( 'save_post', 'cltvo_fbk_save_post', 10, 2 );
 add_action( 'add_meta_boxes', 'wp2Fbk_metaboxes' );
 add_action( 'load-admin_page_myplugin-custom-page', 'myplugin_custom_page_redirect' );
 add_action('admin_init', 'cltvo_wp2fbk_preprocess_pages');
+add_action( 'wp_enqueue_scripts', 'wp2fbk_js' );
+
+function wp2fbk_js(){
+	wp_register_script( 'wp2fbk_functions_js', BLOGURL.'/wp-content/plugins/cltvo-wp2fbk/js/wp2fbk-functions.js', array('jquery'), false, true );
+	wp_localize_script( 'wp2fbk_functions_js', 'wp2fbk_vars', wp2fbk_vars() );
+
+	wp_enqueue_script('wp2fbk_functions_js');
+}
+
+function wp2fbk_vars(){
+	$php2js_vars = array(
+		'site_url'     => home_url('/'),
+		'template_url' => get_bloginfo('template_url'),
+		'appid' => get_option('cltvo_fbk_appId')
+	);
+	return $php2js_vars;
+
+}
 
 //Imprime la página para configurar los comentarios
 function wp2Fbk_registrar_pagina(){
@@ -40,6 +58,13 @@ function wp2Fbk_registrar_pagina(){
 
 //METABOX
 function wp2Fbk_metaboxes(){
+	add_meta_box(
+		'post2fbk_mb',
+		'Facebook',
+		'post2fbk_mb',
+		'crdmn_proyecto_pt',
+		'side'
+	);
 	add_meta_box(
 		'post2fbk_mb',
 		'Facebook',
@@ -129,24 +154,34 @@ function cltvo_fbk_save_post($id, $post){
 	$appId = get_option('cltvo_fbk_appId');
 	$secret = get_option('cltvo_fbk_secret');
 
-	$img_ids = cltvo_todosIdsImgsDelPost($id);
-
-	if( is_array($img_ids) ){
-		$cltvo_fbk = new CLTVO_fbk($appId, $secret);
-
-		foreach ($img_ids as $img_id) {
-			$args = array(
-				'message' => $post->post_content . ' http://www.hildacalderon.com/category/prendas/#prendas',
-				'image' => '@' . cltvo_wpURL_2_path( wp_get_attachment_url($img_id) )
-			);
-
-			$new_fbk_post = $cltvo_fbk->post_ph_2fbk( $args );
-
-			if($new_fbk_post){
-				update_post_meta($img_id, 'fbk_post_id', $new_fbk_post['id']);
-			}
-		}
+	$cltvo_fbk = new CLTVO_fbk($appId, $secret);
+	$args = array(
+		'message' => $post->post_title ."\r\n". get_permalink($post->ID),
+		'image' => '@' . cltvo_wpURL_2_path( wp_get_attachment_url(get_post_thumbnail_id($post->ID)) )
+	);
+	$new_fbk_post = $cltvo_fbk->post_ph_2fbk( $args );
+	if($new_fbk_post){
+		update_post_meta($post->ID, 'fbk_post_id', $new_fbk_post['id']);
 	}
+
+	// $img_ids = cltvo_todosIdsImgsDelPost($id);
+
+	// if( is_array($img_ids) ){
+	// 	$cltvo_fbk = new CLTVO_fbk($appId, $secret);
+
+	// 	foreach ($img_ids as $img_id) {
+	// 		$args = array(
+	// 			'message' => $post->post_content . ' http://www.hildacalderon.com/category/prendas/#prendas',
+	// 			'image' => '@' . cltvo_wpURL_2_path( wp_get_attachment_url($img_id) )
+	// 		);
+
+	// 		$new_fbk_post = $cltvo_fbk->post_ph_2fbk( $args );
+
+	// 		if($new_fbk_post){
+	// 			update_post_meta($img_id, 'fbk_post_id', $new_fbk_post['id']);
+	// 		}
+	// 	}
+	// }
 }
 
 if(!function_exists('cltvo_fbk_option')){
