@@ -129,17 +129,18 @@ class CLTVO_fbk{
 
 		foreach($this->accounts as $account){
 			if( $account['id'] == $this->pagId ){
-
-				$access_token_debug = $this->facebook->api('/debug_token', 'GET', array(
-					'input_token' => $account['access_token'],
-					'access_token' => $account['access_token']
-				));
 				$this->pageToken = $account['access_token'];
-				$this->pageTokenExpires = $access_token_debug['data']['expires_at'];
 			}
 		}
 		if($returnExpires){
-			$token = array($this->pageToken, $this->pageTokenExpires);
+			// esto no está funcionando, 
+			// el access token debería de ser token de la app
+			$access_token_debug = $this->facebook->api('/debug_token', 'GET', array(
+				'input_token' => $account['access_token'],
+				'access_token' => $account['access_token']
+			));
+
+			$token = array($this->pageToken, $access_token_debug['data']['expires_at']);
 		}else{
 			$token = $this->pageToken;
 		}
