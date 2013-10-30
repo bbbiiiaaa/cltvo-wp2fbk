@@ -3,7 +3,7 @@
 Plugin Name: EL CULTIVO - Wp2Fbk
 Plugin URI: http://elcultivo.mx
 Description: Las publicaciones de WP se publican una página de Fbk (cada attachment es un post de Fbk).
-Version: 1.0
+Version: 2.2
 Author: El Cultivo
 Author URI: http://elcultivo.mx
 */
