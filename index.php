@@ -78,7 +78,9 @@ function post2fbk_mb($obj){
 	$secret = get_option('cltvo_fbk_secret');
 	$token = get_option('cltvo_fbk_pageToken');
 
-	if( $appId && $secret && $token ){
+	if( $fid = get_post_meta($obj->ID, 'fbk_post_id', true) ){
+		echo "Publicado con el FID: $fid";
+	}elseif( $appId && $secret && $token ){
 		echo '<p><input type="checkbox" name="post2fbk_in" > Publicar en Facebook</p>';
 	}else{
 		echo 'Para publicar en Facebook, primero tienes que <a href="';
